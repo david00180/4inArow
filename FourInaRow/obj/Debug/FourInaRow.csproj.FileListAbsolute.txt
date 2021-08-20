@@ -1,0 +1,16 @@
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\FourInaRow.exe
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\FourInaRow.pdb
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.AssemblyReference.cache
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.CoreCompileInputs.cache
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.exe
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.pdb
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\Ex02.ConsoleUtils.dll
+C:\Users\David\source\repos\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.CopyComplete
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\FourInaRow.exe
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\FourInaRow.pdb
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\bin\Debug\Ex02.ConsoleUtils.dll
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.AssemblyReference.cache
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.CoreCompileInputs.cache
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.csproj.CopyComplete
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.exe
+C:\codingProjects\cpp\cSharp_dotNet\C21 Ex02 Shai 313189490 David 208430165\FourInaRow\obj\Debug\FourInaRow.pdb
