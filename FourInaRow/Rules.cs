@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FourInaRow
+namespace C21_Ex05_Shai313189490_David_208430165
 {
     /*
      * this Struct Rules is responsible to take care about game rule,
@@ -17,6 +17,26 @@ namespace FourInaRow
         public Rules(ref char[,] i_Board)
         {
             m_board = i_Board;
+        }
+
+        public bool checkFillCol(byte i_userColChoice)
+        {
+            return m_board[0, i_userColChoice] == ' ';
+        }
+
+        /*
+        * this method is reset the board if there is 
+        * draw, exit or game finished option.
+        */
+        public void resetBoard(byte i_rowSize, byte i_colSize)
+        {
+            for (int i = 0; i < i_rowSize; i++)
+            {
+                for (int j = 0; j < i_colSize; j++)
+                {
+                    m_board[i, j] = ' ';
+                }
+            }
         }
 
         /*
@@ -46,16 +66,13 @@ namespace FourInaRow
          */
         public byte checkUserChoiceCol(byte i_colLength, byte i_rowLength)
         {
-            bool checkIsNum = false;
             bool correctInputCol = true;
-            bool rightValueToContinueProgress = true;
             string userTempInput = null;
             byte freeCells = 0;
             byte o_userChoice = 0;
             byte tempUserChoiceToByte = 0;
-            byte tempCheck = 11;
 
-            if (!isBoardFull(i_colLength))
+            if (!this.isBoardFull(i_colLength))
             {
                 o_userChoice = 10; // means there is a full board and game is DRAW !
             }
@@ -63,35 +80,6 @@ namespace FourInaRow
             {
                 while (correctInputCol)
                 {
-                    do
-                    {
-                        userTempInput = Console.ReadLine();
-                        checkIsNum = byte.TryParse(userTempInput, out tempCheck);
-                        if (checkIsNum)
-                        {
-                            if (tempCheck >= 0 && tempCheck < i_colLength)
-                            {
-                                rightValueToContinueProgress = false;
-                            }
-                            else
-                            {
-                                Console.WriteLine("invalid value! input number only in a rage or 'q' to exit game.");
-                            }
-                        }
-                        else
-                        {
-                            if (userTempInput == "q")
-                            {
-                                rightValueToContinueProgress = false;
-                            }
-                            else
-                            {
-                                Console.WriteLine("invalid value! input number only in a rage or 'q' to exit game.");
-                            }
-                        }
-                    }
-                    while(rightValueToContinueProgress);
-
                     if (userTempInput == "q")
                     {
                         o_userChoice = 9;

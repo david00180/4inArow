@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FourInaRow
+namespace C21_Ex05_Shai313189490_David_208430165
 {
    public class Player
     {
@@ -27,7 +27,7 @@ namespace FourInaRow
         public byte points
         {
             get { return m_points; }
-            set { m_points++; }
+            set { m_points = value; }
         }
     }
 }

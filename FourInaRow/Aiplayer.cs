@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-/// <summary>
+﻿/// <summary>
 /// AI calss. The bot was defined as a winning bot. The bot only looks at the current moment and chooses the best option!
 /// The methods of the class calculate the best step by means of the highest numerical "probability" by which it chooses the move.
 /// The bot is not able to "block" the user's move by noticing his move, but he aims to win according to a sequence of 4,
 /// so there may be a brake for the user to win but not in a calculated way, but in favor of the bot's self-victory
 /// </summary>
-namespace FourInaRow
+namespace C21_Ex05_Shai313189490_David_208430165
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
     public class Aiplayer
     {
         private Rules m_GameRule; // null
@@ -79,6 +79,7 @@ namespace FourInaRow
             byte[] ArrayStorageIndex = new byte[m_colLength];
             byte[] ArrayStorageBestMove = new byte[m_colLength];
             bool[] isRowFull = new bool[m_colLength];
+
             byte tempColLength = m_colLength;
             byte tempRowLength = m_rowLength;
             tempRowLength--;

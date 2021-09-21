@@ -1,415 +1,264 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace FourInaRow
+namespace C21_Ex05_Shai313189490_David_208430165
 {
-    public class FourinARow
+    public partial class Game : Form
     {
-        private Rules m_GameRule; // null 
-        private GameUI m_userInterface = null;
+        private GameSettings m_gameSettings = null;
+
+        private Rules m_rules = null;
+
+        private char[,] m_board = null;
+
         private Player m_playerOne = null;
-        private Player m_playerTow = null;
+        private Player m_playerTwo = null;
+
         private Aiplayer m_playerAi = null;
-        private char[,] m_gameBoard = null;
-        private byte m_numOfRow = 0;
-        private byte m_numOfCol = 0;
-        private byte m_userChoice = 0;
-        
-        public FourinARow()
+
+        private string m_firstPlayerName = string.Empty;
+        private string m_secondPlayerName = string.Empty;
+
+        public Game(GameSettings i_gameSettings)
         {
-            Console.WriteLine("Hello and Wellcome to 4 in a row GAME !");
-            defineUserChoicePlayStyle();
-            userDefineBoardSize();
-            defineDirectionOfGameStyle();
+            m_gameSettings = i_gameSettings;
+
+            m_board = new char[m_gameSettings.rowSize, m_gameSettings.colSize];
+
+            m_rules = new Rules(ref m_board);
+
+            m_firstPlayerName = m_gameSettings.playerOneName;
+            m_secondPlayerName = m_gameSettings.playerTwoName;
+
+            InitializeOrCPU(m_gameSettings);
+
+            InitializeComponent(m_gameSettings);
         }
 
-        /*
-         * Routes the game process
-         * against Player or AI
-         */
-        public void startPlay()
+        /// set the players, pvp or cpu
+        private void InitializeOrCPU(GameSettings i_gameSettings)
         {
-            m_userInterface = new GameUI(ref m_gameBoard, m_numOfRow, m_numOfCol);
-            m_userInterface.resetOutPutPrint();
-            m_userInterface.printBoard();
+            m_playerOne = new Player();
+            m_playerOne.IsMyTurn = true;
 
-            if (m_userChoice == 1)
+            if (i_gameSettings.isPvpGame)
             {
-                pvpGame();
+                m_playerTwo = new Player();
             }
             else
             {
-                aiVsPlayer();
+                m_playerAi = new Aiplayer(ref m_board, ref m_rules);
+                m_playerAi.setColLength(m_gameSettings.colSize);
+                m_playerAi.setRowLength(m_gameSettings.rowSize);
             }
         }
 
-        /*
-         * this method is operate the game of Player Vs AI
-         */
-        private void aiVsPlayer()
+        private void userClickButtomChoice(object sender, EventArgs e)
         {
-            bool isGameContinue = true;
-            bool isAiPlay = true;
-            m_playerAi.setRowLength(m_numOfRow);
-            m_playerAi.setColLength(m_numOfCol);
-
-            while (isGameContinue)
+            Button button = sender as Button;
+            if (m_gameSettings.isPvpGame)
             {
-                isGameContinue = progressOfUserInputGame(1, 'x', isAiPlay);
+                gameOfPVP(button);
+            }
+            else
+            {
+                gameOfAI(button);
+            }
+        }
 
-                if (isGameContinue)
-               {
-                    m_playerAi.bestMove();
+        private void gameOfAI(Button i_button)
+        {
+            DialogResult? dialogResult;
 
-                    m_gameBoard[m_playerAi.getFillRow(), m_playerAi.getFillCol()] = 'o';
-                    m_userInterface.resetOutPutPrint();
-                    m_userInterface.printBoard();
+            byte choice = byte.Parse(i_button.Text); // col index
+            choice -= 1;
 
-                    if (isWin(m_playerAi.getFillRow(), m_playerAi.getFillCol(), 'o'))
+            if (m_playerOne.IsMyTurn)
+            {
+                byte rowPosition = m_rules.getPointRowKnownCol(choice, m_gameSettings.rowSize);
+                this.m_outPutViewGameState[rowPosition, choice].Text = "x";
+                m_board[rowPosition, choice] = 'x';
+
+                m_playerOne.IsMyTurn = false;
+
+                if (m_rules.checkRow(rowPosition, choice, 'x') || m_rules.checkCol(rowPosition, choice, 'x') || m_rules.checkDiagonalDescends(rowPosition, choice, 'x') || m_rules.checkDiagonalRising(rowPosition, choice, 'x'))
+                {
+                    m_playerOne.points++;
+
+                    dialogResult = MessageBox.Show(m_firstPlayerName + "Win!!\nAnother Round?", "A win!", MessageBoxButtons.YesNo);
+
+                    if (dialogResult == DialogResult.Yes)
                     {
-                        m_playerAi.Points++;
-                        Console.WriteLine("Congratulations! CPU win.\ncpu score: " + m_playerAi.Points + "\nPlayer 1 score: " + m_playerOne.points);
-                        isGameContinue = userChoiceToContinueGame(0);
-                        m_userInterface.resetBoard();
+                        this.m_firstPlayer.Text = m_firstPlayerName + m_playerOne.points.ToString();
+                        m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+                        resetUIboard();
                     }
-
-                    if (!m_GameRule.isBoardFull(m_numOfCol))
+                    else
                     {
-                        Console.WriteLine("draw!");
-                        isGameContinue = userChoiceToContinueGame(10);
+                        Close();
                     }
                 }
             }
-        }
 
-        /*
-         * this method is the Engine of the PVP game (player Vs player)
-         */
-        private void pvpGame()
-        {
-            bool whichPlayerStart = true;
-            bool isGameContinue = true;
-            bool isAiPlay = false;
-
-            /*
-             * if returned value is TRUE then player one begin.
-             * if returned value is FALSE then player two begin.
-             */
-        whichPlayerStart = choiceRandomWhichPlayerBegin();
-
-            while (isGameContinue)
-            {    
-                ///player 1 - > ' x '
-                if (whichPlayerStart)
+            /// AI part
+                m_playerAi.bestMove();
+                m_board[m_playerAi.getFillRow(), m_playerAi.getFillCol()] = 'o';
+                this.m_outPutViewGameState[m_playerAi.getFillRow(), m_playerAi.getFillCol()].Text = "o";
+                m_playerOne.IsMyTurn = true;
+                if (isWin(m_playerAi.getFillRow(), m_playerAi.getFillCol(), 'o'))
                 {
-                    isGameContinue = progressOfUserInputGame(1, 'x', isAiPlay);
-                    whichPlayerStart = false;
+                    m_playerAi.Points++;
+                    dialogResult = MessageBox.Show("CPU Win!!\nAnother Round?", "A win!", MessageBoxButtons.YesNo);
+
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        this.m_secondPlayer.Text = m_secondPlayerName + m_playerAi.Points.ToString();
+                        m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+
+                        resetUIboard();
+                    }
+                    else
+                    {
+                        Close();
+                    }
+                }
+
+            /// draw
+            if (!m_rules.isBoardFull(m_gameSettings.colSize))
+            {
+                dialogResult = MessageBox.Show("tir!!\nAnother Round?", "a Tie!", MessageBoxButtons.YesNo);
+
+                m_playerOne.points = 0;
+                m_playerAi.Points = 0;
+
+                if (dialogResult == DialogResult.Yes)
+                {
+                    resetUIboard();
+                    m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+                    this.m_firstPlayer.Text = m_firstPlayerName + m_playerOne.points.ToString();
+                    this.m_secondPlayer.Text = m_secondPlayerName + m_playerAi.Points.ToString();
                 }
                 else
                 {
-                    isGameContinue = progressOfUserInputGame(2, 'o', isAiPlay);
-                    whichPlayerStart = true;
+                    Close();
                 }
             }
-        }
-
-        /*
-         * this function is return true only if the player is win 
-         * 
-         */
+        }  
+        
+         /// this function is return true only if the player is win 
         private bool isWin(byte i_rowPosition, byte i_userColChoiceCol, char i_sign)
         {
             bool o_rowCheckWin = false;
-
             bool o_colCheckWin = false;
-
             bool o_diagonalDescendsCheckWin = false;
             bool o_diagonalRisingCheckWin = false;
-            o_rowCheckWin = m_GameRule.checkRow(i_rowPosition, i_userColChoiceCol, i_sign);
-            o_colCheckWin = m_GameRule.checkCol(i_rowPosition, i_userColChoiceCol, i_sign);
-            o_diagonalDescendsCheckWin = m_GameRule.checkDiagonalDescends(i_rowPosition, i_userColChoiceCol, i_sign);
-            o_diagonalRisingCheckWin = m_GameRule.checkDiagonalRising(i_rowPosition, i_userColChoiceCol, i_sign);
+            o_rowCheckWin = m_rules.checkRow(i_rowPosition, i_userColChoiceCol, i_sign);
+            o_colCheckWin = m_rules.checkCol(i_rowPosition, i_userColChoiceCol, i_sign);
+            o_diagonalDescendsCheckWin = m_rules.checkDiagonalDescends(i_rowPosition, i_userColChoiceCol, i_sign);
+            o_diagonalRisingCheckWin = m_rules.checkDiagonalRising(i_rowPosition, i_userColChoiceCol, i_sign);
 
             return o_rowCheckWin || o_colCheckWin || o_diagonalDescendsCheckWin || o_diagonalRisingCheckWin;
         }
-
-        /*
-         * this function return true to continue the game.
-         * how?
-         * 1. win
-         * 2. draw 
-         * 3. exit
-         * 
-         * otherwise, false and the game is stop.
-         */
-        private bool progressOfUserInputGame(byte i_indexPlayer, char i_sign, bool i_isAI)
+        
+        /// this method is for PVP game 
+        private void gameOfPVP(Button i_button)
         {
-            bool isGameContinue = true;
-            byte userColChoiceCol = 0, rowPosition = 0;
+            DialogResult? dialogResult;
+            byte choice = byte.Parse(i_button.Text); // col index
+            choice -= 1;
 
-            Console.WriteLine("player " + i_indexPlayer + "  turn - you play with - '" + i_sign + "' - choice col:\npress 'q' to exit game ");
-            userColChoiceCol = m_GameRule.checkUserChoiceCol(m_numOfCol, m_numOfRow);
-            /// 10 = draw, 9 == exit 
-            if (userColChoiceCol == 10 || userColChoiceCol == 9)
+            if (!(m_board[0, choice] == 'x' || m_board[0, choice] == 'o'))
             {
-                isGameContinue = userChoiceToContinueGame(userColChoiceCol);
-            }
-            else
-            {
-                rowPosition = m_GameRule.getPointRowKnownCol(userColChoiceCol, m_numOfRow);
-                m_gameBoard[rowPosition, userColChoiceCol] = i_sign; // set here the sign in the cell of the board.
-
-                if (isWin(rowPosition, userColChoiceCol, i_sign))
+                if (m_playerOne.IsMyTurn)
                 {
-                    m_userInterface.resetOutPutPrint();
-                    m_userInterface.printBoard();
-                    if(i_indexPlayer == 1)
+                    byte rowPosition = m_rules.getPointRowKnownCol(choice, m_gameSettings.rowSize);
+                    this.m_outPutViewGameState[rowPosition, choice].Text = "x";
+                    m_board[rowPosition, choice] = 'x';
+
+                    m_playerOne.IsMyTurn = false;
+
+                    if (m_rules.checkRow(rowPosition, choice, 'x') || m_rules.checkCol(rowPosition, choice, 'x') || m_rules.checkDiagonalDescends(rowPosition, choice, 'x') || m_rules.checkDiagonalRising(rowPosition, choice, 'x'))
                     {
                         m_playerOne.points++;
-                    }
-                    else
-                    {
-                        m_playerTow.points++;
-                    }
+                        dialogResult = MessageBox.Show(m_firstPlayerName + "Win!!\nAnother Round?", "A win!", MessageBoxButtons.YesNo);
 
-                    if (i_isAI)
-                    {
-                        Console.WriteLine("Congratulations! player 1 win!\nplayer 1 score: " + m_playerOne.points + "\nCPU score: " + m_playerAi.Points);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Congratulations! player " + i_indexPlayer + " win!\nplayer 1 score: " + m_playerOne.points + "\nplayer 2 score: " + m_playerTow.points);
-                    }
-
-                    isGameContinue = userChoiceToContinueGame(0);
-                }
-                else
-                {
-                    m_userInterface.resetOutPutPrint();
-                    m_userInterface.printBoard();
-                }
-            }
-
-            return isGameContinue;
-        }
-
-        /*
-         * this function return true if the use want to continue the game 
-         * or not for any reason - win, exit, draw
-         */
-        private bool userChoiceToContinueGame(byte i_gameState)
-        {
-            bool o_isGameContinue = false;
-            string tempUserChoiceCheck = null;
-            while (!(tempUserChoiceCheck == "y" || tempUserChoiceCheck == "n"))
-            {
-                if (i_gameState == 10)
-                {
-                   if(m_playerTow != null)
-                    {
-                        Console.WriteLine("draw!\nplayer 1 score: " + m_playerOne.points + "\nplayer 2 score: " + m_playerTow.points);
-                    }
-                    else
-                    {
-                        Console.WriteLine("draw!\nplayer 1 score: " + m_playerOne.points + "\nCPU score: " + m_playerAi.Points);
-                    }
-
-                    Console.WriteLine("would you want to continue the game? y/n");
-                }
-                else if (i_gameState == 9)
-                {
-                    if (m_playerTow != null)
-                    {
-                        Console.WriteLine("you choiced exit!\nplayer 1 score: " + m_playerOne.points + "\nplayer 2 score: " + m_playerTow.points);
-                    }
-                    else
-                    {
-                        Console.WriteLine("you choiced exit!\nplayer 1 score: " + m_playerOne.points + "\nCPU score: " + m_playerAi.Points);
-                    }
-
-                    Console.WriteLine("would you want to continue the game? y/n");
-                }
-                else if(i_gameState == 0)
-                {
-                    Console.WriteLine("want to continue the game? y/n");
-                }
-
-                tempUserChoiceCheck = Console.ReadLine();
-
-                if (!(tempUserChoiceCheck == "y" || tempUserChoiceCheck == "n"))
-                {
-                    Console.WriteLine("invalid value! input y/n");
-                }
-
-                i_gameState = 11; // to not repeat the print 
-            }
-
-            if (tempUserChoiceCheck == "n")
-            {
-                Console.WriteLine("thank you for playing. have a nice day");
-                o_isGameContinue = false;
-            }
-            else
-            {
-                m_userInterface.resetBoard();
-                m_userInterface.resetOutPutPrint();
-                m_userInterface.printBoard();
-
-                o_isGameContinue = true;
-            }
-
-            return o_isGameContinue;
-        }
-       
-        /*
-         * define which player will start first you play. 
-         * if the it`s player 1 - then the function will return true
-         * otherwise for second player 2 - the function will return false.
-         */
-        private bool choiceRandomWhichPlayerBegin()
-        {
-            bool o_tempRandomChoice = true;
-            Random randomNum = new Random();
-            int randomStart = randomNum.Next(1, 2);
-            
-            if(randomStart == 1)
-            {
-                o_tempRandomChoice = true;
-            }
-            else
-            {
-                o_tempRandomChoice = false;
-            }
-
-            return o_tempRandomChoice;
-        }
-
-        /*
-         * this method is check user input of size board game.
-         * and define the board size.
-         */
-        private void userDefineBoardSize()
-        {
-            byte rowSize = 0;
-            byte colSize = 0;
-            string tempUserChoiceRowSize = null;
-            string tempUserChoiceColSize = null;
-            bool checkIsNum = false;
-
-            Console.WriteLine("please enter size of Row should be between 4 and 8  - incould");
-            while(!(rowSize >= 4 && rowSize <= 8))
-            {
-                tempUserChoiceRowSize = Console.ReadLine();
-                checkIsNum = byte.TryParse(tempUserChoiceRowSize, out rowSize);
-
-                if (checkIsNum)
-                {
-                    if (rowSize >= 4 && rowSize <= 8)
-                    {
-                        m_numOfRow = rowSize;
-                    }
-                    else
-                    {
-                        Console.WriteLine("invalid size - input between 4 and 8 - incould");
+                        if(dialogResult == DialogResult.Yes)
+                        {
+                            this.m_firstPlayer.Text = m_firstPlayerName + m_playerOne.points.ToString();
+                            m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+                            resetUIboard();
+                        }
+                        else
+                        {
+                            Close();
+                        }
                     }
                 }
                 else
                 {
-                    Console.WriteLine("invalid size - input between 4 and 8 - incould");
-                }
-            }
+                    byte rowPosition = m_rules.getPointRowKnownCol(choice, m_gameSettings.rowSize);
+                    this.m_outPutViewGameState[rowPosition, choice].Text = "o";
+                    m_board[rowPosition, choice] = 'o';
 
-            checkIsNum = false;
+                    m_playerOne.IsMyTurn = true;
 
-            Console.WriteLine("please enter size of Col should be between 4 and 8  - incould");
-
-            while (!(colSize >= 4 && colSize <= 8))
-            {
-                tempUserChoiceColSize = Console.ReadLine();
-                checkIsNum = byte.TryParse(tempUserChoiceColSize, out colSize);
-
-                if (checkIsNum)
-                {
-                    if (colSize >= 4 && colSize <= 8)
+                    if (m_rules.checkRow(rowPosition, choice, 'o') || m_rules.checkCol(rowPosition, choice, 'o') || m_rules.checkDiagonalDescends(rowPosition, choice, 'o') || m_rules.checkDiagonalRising(rowPosition, choice, 'o'))
                     {
-                        m_numOfCol = colSize;
+                        dialogResult = MessageBox.Show(m_secondPlayerName + "Win!!\nAnother Round?", "A win!", MessageBoxButtons.YesNo);
+                        if (dialogResult == DialogResult.Yes)
+                        {
+                            m_playerTwo.points++;
+                            this.m_secondPlayer.Text = m_secondPlayerName + m_playerTwo.points.ToString();
+                            m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+                            resetUIboard();
+                        }
+                        else
+                        {
+                            Close();
+                        }
+                    }
+                }
+
+                /// draw
+                if (!m_rules.isBoardFull(m_gameSettings.colSize))
+                {
+                    dialogResult = MessageBox.Show("tir!!\nAnother Round?", "a Tie!", MessageBoxButtons.YesNo);
+
+                    m_playerOne.points = 0;
+                    m_playerTwo.points = 0;
+
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        resetUIboard();
+                        m_rules.resetBoard(m_gameSettings.rowSize, m_gameSettings.colSize);
+
+                        this.m_firstPlayer.Text = m_firstPlayerName + m_playerOne.points.ToString();
+                        this.m_secondPlayer.Text = m_secondPlayerName + m_playerTwo.points.ToString();
                     }
                     else
-                {
-                    Console.WriteLine("invalid size - input between 4 and 8 - incould");
-                }
-                }
-                else
-                {
-                    Console.WriteLine("invalid size - input between 4 and 8 - incould");
-                }
-            }
-
-            Console.WriteLine(m_numOfRow + "  " + m_numOfCol);
-        }
-
-        /*
-         * user define against who he want to play,
-         * player OR AI
-         */
-        private void defineUserChoicePlayStyle()
-        {
-            byte userChoiceNum = 0;
-            string tempUserChoiceCheck = null;
-            bool checkIsNum = false;
-            Console.WriteLine("now, choice against who you want to play:\nfor another player press 1\nagainst AI press 2");
-
-            while(!(userChoiceNum == 1 || userChoiceNum == 2))
-            {
-                tempUserChoiceCheck = Console.ReadLine();
-                checkIsNum = byte.TryParse(tempUserChoiceCheck, out userChoiceNum);
-
-                if (checkIsNum)
-                {
-                    if (!(userChoiceNum == 1 || userChoiceNum == 2))
                     {
-                        Console.WriteLine("invalid value! input number 1 or 2");
+                        Close();
                     }
                 }
-                else
-                {
-                    Console.WriteLine("invalid value! input number 1 or 2");
-                }
             }
-
-            /// else -> 2
-            if(userChoiceNum == 1)
-            {
-                Console.WriteLine("well done! you play against Player, gl!");
-            }
-            else
-            {
-                Console.WriteLine("well done! you play against AI, gl!");
-            }
-
-            m_userChoice = userChoiceNum;
         }
 
-        /*
-         * this method is operate the players OR AI game
-         */
-        private void defineDirectionOfGameStyle()
+        /// this method is reset the UI board 
+        private void resetUIboard()
         {
-            m_gameBoard = new char[m_numOfRow, m_numOfCol];
-            m_GameRule = new Rules(ref m_gameBoard);
-
-            if (m_userChoice == 1)
+            for (int i = 0; i < m_gameSettings.rowSize; i++)
             {
-                m_playerOne = new Player();
-                m_playerTow = new Player();
-            }
-            else
-            {
-                m_playerOne = new Player();
-                m_playerAi = new Aiplayer(ref m_gameBoard, ref m_GameRule);
+                for (int j = 0; j < m_gameSettings.colSize; j++)
+                {
+                    this.m_outPutViewGameState[i, j].Text = string.Empty;
+                }
             }
         }
     }
